@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.ojm.jackson;
+package org.springframework.ojm;
 
-import java.io.InputStream;
+import java.io.OutputStream;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.springframework.ojm.Unmarshaller;
+public interface Marshaller {
 
-public class JacksonUnmarshaller implements Unmarshaller {
-
-	private ObjectMapper objectMapper;
-
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		this.objectMapper = objectMapper;
-	}
-
-	@Override
-	public <T> T unmarshal(InputStream inputStream, Class<T> _class) throws Exception {
-		return objectMapper.readValue(inputStream, _class);
-	}
+	public void marshal(OutputStream outputStream, Object _class) throws Exception;
 }

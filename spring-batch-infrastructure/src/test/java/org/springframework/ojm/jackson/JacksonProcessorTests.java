@@ -15,12 +15,15 @@
  */
 package org.springframework.ojm.jackson;
 
-import static org.hamcrest.core.IsCollectionContaining.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.core.IsCollectionContaining.hasItems;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 
 /**
@@ -30,7 +33,7 @@ import org.junit.Test;
  * @author Matthew Ouyang
  * @since 3.1
  */
-public class JacksonUnmarshallerTest {
+public class JacksonProcessorTests {
 
 	private static class SimpleObject {
 
@@ -40,7 +43,6 @@ public class JacksonUnmarshallerTest {
 			return stringValue;
 		}
 
-		@SuppressWarnings("unused")
 		public void setStringValue(String stringValue) {
 			this.stringValue = stringValue;
 		}
@@ -81,20 +83,41 @@ public class JacksonUnmarshallerTest {
 	}
 
 	@Test
-	public void simpleObject() throws Exception {
-		String json = "{'stringValue' : '123'}";
-		JacksonUnmarshaller unmarshaller = new JacksonUnmarshaller();
+	public void readSimpleObject() throws Exception {
+		String json = "{\"stringValue\" : \"123\"}";
+
+		JacksonProcessor unmarshaller = new JacksonProcessor();
+		unmarshaller.setObjectMapper(new ObjectMapper());
+
 		SimpleObject simpleObject = unmarshaller.unmarshal(new ByteArrayInputStream(json.getBytes()), SimpleObject.class);
-		assertThat(simpleObject.getStringValue(), equals("123"));
+		assertThat(simpleObject.getStringValue(), equalTo("123"));
 	}
 
 	@Test
-	public void compositeObject() throws Exception {
-		String json = "'stringValue' : '321', 'arrayOfIntegers' : [1, 2], 'simpleObject' : {'stringValue' : '123'}";
-		JacksonUnmarshaller unmarshaller = new JacksonUnmarshaller();
+	public void readCompositeObject() throws Exception {
+		String json = "{\"stringValue\" : \"321\", \"arrayOfIntegers\" : [1, 2], \"simpleObject\" : {\"stringValue\" : \"123\"}}";
+
+		JacksonProcessor unmarshaller = new JacksonProcessor();
+		unmarshaller.setObjectMapper(new ObjectMapper());
+
 		CompositeObject simpleObject = unmarshaller.unmarshal(new ByteArrayInputStream(json.getBytes()), CompositeObject.class);
-		assertThat(simpleObject.getStringValue(), equals("321"));
+
+		assertThat(simpleObject.getStringValue(), equalTo("321"));
 		assertThat(simpleObject.getArrayOfIntegers(), hasItems(1, 2));
-		assertThat(simpleObject.getSimpleObject().getStringValue(), equals("123"));
+		assertThat(simpleObject.getSimpleObject().getStringValue(), equalTo("123"));
+	}
+
+	@Test
+	public void writeSimpleObject() throws Exception {
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		JacksonProcessor marshaller = new JacksonProcessor();
+		marshaller.setObjectMapper(new ObjectMapper());
+		
+		SimpleObject simpleObject = new SimpleObject();
+		simpleObject.setStringValue("string-value");
+		
+		marshaller.marshal(outputStream, simpleObject);
+
+		assertThat(new String(outputStream.toByteArray()), equalTo("{\"stringValue\":\"string-value\"}"));
 	}
 }
